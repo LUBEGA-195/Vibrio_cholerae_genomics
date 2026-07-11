@@ -216,3 +216,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Nextflow generated files
+.nextflow/
+.nextflow.log*
+work/
+
+# Pipeline results
+results/
+
+# Raw sequencing data
+data/fastq/
+
+# Temporary files
+*.tmp
+*.log
