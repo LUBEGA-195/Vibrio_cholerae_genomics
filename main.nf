@@ -33,9 +33,9 @@ process FASTP {
     tuple val(sample), path(reads)
 
     output:
-    tuple val(sample), path("*_clean_R1.fastq"), path("*_clean_R2.fastq")
-    path "*_fastp.html"
-    path "*_fastp.json"
+    tuple val(sample), path("*_clean_R1.fastq"), path("*_clean_R2.fastq"), emit: clean_reads
+    path "*_fastp.html", emit: fastp_html
+    path "*_fastp.json", emit: fastp_json
 
     script:
     """
@@ -57,5 +57,7 @@ workflow {
     FASTQC(reads_ch)
 
     FASTP(reads_ch)
+
+    FASTP.out.clean_reads.view()
 
 }
