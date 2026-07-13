@@ -21,9 +21,41 @@ process FASTQC {
     """
 }
 
+process FASTP {
+
+    tag "${sample}"
+
+    publishDir "results/fastp", mode: 'copy'
+
+    conda "bioconda::fastp"
+
+    input:
+    tuple val(sample), path(reads)
+
+    output:
+    tuple val(sample), path("*_clean_R1.fastq"), path("*_clean_R2.fastq")
+    path "*_fastp.html"
+    path "*_fastp.json"
+
+    script:
+    """
+    fastp \
+    -i ${reads[0]} \
+    -I ${reads[1]} \
+    -o ${sample}_clean_R1.fastq \
+    -O ${sample}_clean_R2.fastq \
+    -h ${sample}_fastp.html \
+    -j ${sample}_fastp.json
+    """
+}
+
 workflow {
 
-    Channel
+    reads_ch = Channel
         .fromFilePairs("data/fastq/*_{1,2}.fastq")
-        | FASTQC
+
+    FASTQC(reads_ch)
+
+    FASTP(reads_ch)
+
 }
