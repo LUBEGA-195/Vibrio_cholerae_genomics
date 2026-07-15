@@ -103,11 +103,11 @@ download_sra()
         echo "Processing $accession..." | tee -a "$LOG_FILE"
 
         # Check if FASTQ already exists
-        if [ -f "$RAW_DIR/${accession}_1.fastq" ] && [ -f "$RAW_DIR/${accession}_2.fastq" ]
+        if [ -s "$RAW_DIR/${accession}_1.fastq" ] && [ -s "$RAW_DIR/${accession}_2.fastq" ]
         then
-            echo "$accession already exists. Skipping." | tee -a "$LOG_FILE"
-            ((successful++))
-            continue
+   echo "$accession FASTQ already exists. Skipping." | tee -a "$LOG_FILE"
+        successful=$((successful + 1))
+        continue
         fi
 
 
@@ -117,19 +117,20 @@ download_sra()
             echo "$accession download completed." | tee -a "$LOG_FILE"
         else
             echo "ERROR: $accession download failed." | tee -a "$LOG_FILE"
-            ((failed++))
+            failed=$((failed + 1))
             continue
         fi
 
 	#Safety check for complete accession.sra download
-	if [ -f "$RAW_DIR/$accession/$accession.sra" ]
-	then
-    	    echo "$accession SRA download complete" | tee -a "$LOG_FILE"
-	else
-    	    echo "ERROR: $accession SRA download incomplete" | tee -a "LOG_FILE"
-    	    ((failed++))
-    	    continue
-	fi
+    if [ -f "$RAW_DIR/$accession/$accession.sra" ]
+    then
+    	echo "$accession SRA download complete" | tee -a "$LOG_FILE"
+    else
+    	echo "ERROR: $accession SRA download incomplete" | tee -a "$LOG_FILE"
+	rm -rf "$RAW_DIR/$accession"
+    	failed=$((failed + 1))
+    	continue
+    fi
 
 
         # Convert SRA to FASTQ
@@ -138,11 +139,20 @@ download_sra()
             --outdir "$RAW_DIR"
         then
             echo "$accession converted successfully." | tee -a "$LOG_FILE"
-            ((successful++))
+            
         else
             echo "ERROR: $accession FASTQ conversion failed." | tee -a "$LOG_FILE"
-            ((failed++))
+            failed=$((failed + 1))
         fi
+
+	if [ -s "$RAW_DIR/${accession}_1.fastq" ] && [ -s "$RAW_DIR/${accession}_2.fastq" ]
+	then
+    	echo "$accession FASTQ validation passed." | tee -a "$LOG_FILE"
+    	successful=$((successful + 1))
+	else
+    	   echo "ERROR: $accession FASTQ validation failed." | tee -a "$LOG_FILE"
+    	   failed=$((failed + 1))
+	fi
 
     done
 
