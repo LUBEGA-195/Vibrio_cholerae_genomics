@@ -8,8 +8,13 @@
 ###############################################################################
 
 set -eou pipefail
+#Exit immediately if any command fails (-e), treat unset variables  as errors (-u), 
+#and make pipelines fail if any command in the pipeline fails (pipefail)
 
-PROJECT_DIR="$HOME/vibrio_cholerae_genomics"
+#Configuration of required Directories
+
+
+PROJECT_DIR=$(dirname "$(dirname "$(realpath "$0")")")
 
 CONFIG_DIR="$PROJECT_DIR/config"
 
@@ -20,6 +25,7 @@ LOG_DIR="$PROJECT_DIR/logs"
 SAMPLESHEET="$CONFIG_DIR/samples.csv"
 
 LOG_FILE="$LOG_DIR/download.log"
+#Comments  for the  different outputs including any errors that would have been encountered during downloading the reads
 
 ###############################################################################
 # Create required directories
