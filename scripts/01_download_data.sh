@@ -2,7 +2,7 @@
 
 ###############################################################################
 # Script Name : 01_download_data.sh
-# Author      : Bacterial Group
+# Author      : Bacterial Group:nakayengalatifah,lubega brian,karogendo vicent.
 # Project     : Vibrio cholerae Genomics Pipeline
 # Description : Downloads paired-end FASTQ files from NCBI SRA.
 ###############################################################################
