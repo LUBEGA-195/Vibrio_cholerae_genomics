@@ -2,12 +2,13 @@
 
 ###############################################################################
 # Script Name : 01_download_data.sh
-# Author      : Bacterial Group:nakayengalatifah,lubega brian,karogendo vicent.
+# Author      : Bacterial Group:Nakayenga Latifah,Lubega Brian,Karogendo Vicent.
 # Project     : Vibrio cholerae Genomics Pipeline
 # Description : Downloads paired-end FASTQ files from NCBI SRA.
 ###############################################################################
 
 set -eou pipefail
+<<<<<<< HEAD
 #Exit immediately if any command fails (-e), treat unset variables  as errors (-u), 
 #and make pipelines fail if any command in the pipeline fails (pipefail)
 
@@ -16,17 +17,34 @@ set -eou pipefail
 
 PROJECT_DIR=$(dirname "$(dirname "$(realpath "$0")")")
 
+=======
+# Exit immediately if a command fails (-e),
+# if an undefined variable is used (-u),
+# and if any command in a pipeline fails (-o pipefail).
+
+PROJECT_DIR="$HOME/vibrio_cholerae_genomics"
+# Path to the main project directory
+>>>>>>> 4c636f0 (comments)
 CONFIG_DIR="$PROJECT_DIR/config"
-
+# Path to the configuration directory, which stores project settings
+# and files such as the sample sheet.
 RAW_DIR="$PROJECT_DIR/data/raw"
-
+# Directory used to store raw data files downloaded or generated for the project.
 LOG_DIR="$PROJECT_DIR/logs"
-
+# Directory where log files are stored.
+# Logs record script execution details, warnings, and errors for troubleshooting.
 SAMPLESHEET="$CONFIG_DIR/samples.csv"
-
+# Path to the sample sheet file containing sample information
+# and accession numbers used in the analysis pipeline.
 LOG_FILE="$LOG_DIR/download.log"
+# Path to the log file used to record download progress,
+# status messages, and any errors encountered during execution.
+LOG_FILE="$LOG_DIR/download.log"
+<<<<<<< HEAD
 #Comments  for the  different outputs including any errors that would have been encountered during downloading the reads
 
+=======
+>>>>>>> 4c636f0 (comments)
 ###############################################################################
 # Create required directories
 ###############################################################################
