@@ -119,10 +119,13 @@ fi
 
 create_output_directories()
 {
+## Create the directory for storing FastQC quality assessment reports
     mkdir -p "$FASTQC_DIR"
+## Create the directory for storing MultiQC summary reports generated from QC results
     mkdir -p "$MULTIQC_DIR"
+# Create the directory for storing pipeline execution logs and error messages
     mkdir -p "$LOG_DIR"
-
+# Confirm successful creation of output directories and append the message to the log file
     echo "Output directories created successfully." | tee -a "$LOG_FILE"
 }
 
