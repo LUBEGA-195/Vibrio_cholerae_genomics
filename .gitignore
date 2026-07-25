@@ -5,3 +5,4 @@ work/
 logs/
 .nextflow/
 .nextflow.log*
+scripts/busco_downloads/
