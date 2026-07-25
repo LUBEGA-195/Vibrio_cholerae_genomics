@@ -30,12 +30,13 @@ LOG_FILE="$LOG_DIR/download.log"
 ###############################################################################
 # Create required directories
 ###############################################################################
-
+#create dirextories incase they are not there
 mkdir -p "$RAW_DIR"
 mkdir -p "$LOG_DIR"
 
 check_dependencies()
-{ echo "checking required software..."
+{
+ echo "checking required software..."
 
 for tool in prefetch fasterq-dump
 do
@@ -144,8 +145,13 @@ download_sra()
             --split-files \
             --outdir "$RAW_DIR"
         then
-            echo "$accession converted successfully." | tee -a "$LOG_FILE"
-            
+            echo "$accession converted to FASTQ successfully." | tee -a "$LOG_FILE"
+
+    	    echo "Compressing FASTQ files..." | tee -a "$LOG_FILE"
+
+	    gzip "$RAW_DIR/${accession}_1.fastq"
+	    gzip "$RAW_DIR/${accession}_2.fastq"
+            echo "Compression completed." | tee -a "$LOG_FILE"
         else
             echo "ERROR: $accession FASTQ conversion failed." | tee -a "$LOG_FILE"
             failed=$((failed + 1))
