@@ -118,7 +118,7 @@ else
 fi
 
 
-
+}
 create_output_directories()
 {
 ## Create the directory for storing FastQC quality assessment reports
