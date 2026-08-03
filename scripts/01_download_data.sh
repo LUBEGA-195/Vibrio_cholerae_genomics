@@ -1,4 +1,4 @@
-#!/bin/bash
+##!/bin/bash
 
 ###############################################################################
 # Script Name : 01_download_data.sh
@@ -8,7 +8,6 @@
 ###############################################################################
 
 set -eou pipefail
-<<<<<<< HEAD
 #Exit immediately if any command fails (-e), treat unset variables  as errors (-u), 
 #and make pipelines fail if any command in the pipeline fails (pipefail)
 
@@ -16,15 +15,12 @@ set -eou pipefail
 
 
 PROJECT_DIR=$(dirname "$(dirname "$(realpath "$0")")")
-
-=======
 # Exit immediately if a command fails (-e),
 # if an undefined variable is used (-u),
 # and if any command in a pipeline fails (-o pipefail).
 
-PROJECT_DIR="$HOME/vibrio_cholerae_genomics"
+PROJECT_DIR="$HOME/Vibrio_cholerae_genomics"
 # Path to the main project directory
->>>>>>> 4c636f0 (comments)
 CONFIG_DIR="$PROJECT_DIR/config"
 # Path to the configuration directory, which stores project settings
 # and files such as the sample sheet.
@@ -40,11 +36,9 @@ LOG_FILE="$LOG_DIR/download.log"
 # Path to the log file used to record download progress,
 # status messages, and any errors encountered during execution.
 LOG_FILE="$LOG_DIR/download.log"
-<<<<<<< HEAD
-#Comments  for the  different outputs including any errors that would have been encountered during downloading the reads
 
-=======
->>>>>>> 4c636f0 (comments)
+#Comments  for the  different outputs including any errors that would have been encountered during downloading the read
+
 ###############################################################################
 # Create required directories
 ###############################################################################
@@ -167,15 +161,15 @@ download_sra()
 
     	    echo "Compressing FASTQ files..." | tee -a "$LOG_FILE"
 
-	    gzip "$RAW_DIR/${accession}_1.fastq"
-	    gzip "$RAW_DIR/${accession}_2.fastq"
+	    gzip -f "$RAW_DIR/${accession}_1.fastq"
+	    gzip -f "$RAW_DIR/${accession}_2.fastq"
             echo "Compression completed." | tee -a "$LOG_FILE"
         else
             echo "ERROR: $accession FASTQ conversion failed." | tee -a "$LOG_FILE"
             failed=$((failed + 1))
         fi
 
-	if [ -s "$RAW_DIR/${accession}_1.fastq" ] && [ -s "$RAW_DIR/${accession}_2.fastq" ]
+	if [ -s "$RAW_DIR/${accession}_1.fastq.gz" ] && [ -s "$RAW_DIR/${accession}_2.fastq.gz" ]
 	then
     	echo "$accession FASTQ validation passed." | tee -a "$LOG_FILE"
     	successful=$((successful + 1))
@@ -185,6 +179,7 @@ download_sra()
 	fi
 
     done
+
 
 
     # FINAL SUMMARY GOES HERE

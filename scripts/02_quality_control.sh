@@ -76,7 +76,7 @@ check_inputs()
 
 
     # Check FASTQ files
-    for fastq_file in "$RAW_DIR"/*.fastq
+    for fastq_file in "$RAW_DIR"/*.fastq.gz
     do
         if [ -s "$fastq_file" ]
         then
@@ -90,32 +90,34 @@ check_inputs()
 
 
 #check for presence two paired-end reads.
-samples=$(for fastq in "$RAW_DIR"/*.fastq
-do
-    basename "$fastq" | sed 's/_[12]\.fastq//'
-done | sort -u)
+samples=$(
+    for fastq in "$RAW_DIR"/*.fastq.gz
+    do
+        basename "$fastq" | sed 's/_[12]\.fastq\.gz//'
+    done | sort -u
+)
 
 for sample in $samples
 do
-    if [ -f "$RAW_DIR/${sample}_1.fastq" ] && [ -f "$RAW_DIR/${sample}_2.fastq" ]
+    if [ -f "$RAW_DIR/${sample}_1.fastq.gz" ] && \
+       [ -f "$RAW_DIR/${sample}_2.fastq.gz" ]
     then
         echo "$sample paired reads found"
     else
         echo "ERROR: $sample missing paired read"
-        ((error_counter +=1))
+        ((error_counter+=1))
     fi
 done
 
 
+
 if [ "$error_counter" -gt 0 ]
-then
-    echo "Input validation failed with $error_counter errors" | tee -a "$LOG_FILE"
-    exit 1
+then    exit 1
 else
     echo "Input validation successful" | tee -a "$LOG_FILE"
 fi
 
-}
+
 
 create_output_directories()
 {
@@ -137,10 +139,10 @@ run_fastqc()
 
     echo "Starting FastQC analysis..." | tee -a "$LOG_FILE"
 
-    for fastq in "$RAW_DIR"/*.fastq
+    for fastq in "$RAW_DIR"/*.fastq.gz
     do
         filename=$(basename "$fastq")
-        report="${filename%.fastq}_fastqc.html"
+        report="${filename%.fastq.gz}_fastqc.html"
 
         if [ -f "$FASTQC_DIR/$report" ]
         then
@@ -216,4 +218,3 @@ create_output_directories
 check_inputs
 run_fastqc
 run_multiqc
-
