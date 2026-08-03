@@ -28,13 +28,13 @@ set -euo pipefail
 # Directory configuration
 ###############################################################################
 
-PROJECT_DIR=$(dirname "$(dirname "$(realpath "$0")")")
+PROJECT_DIR="$(dirname "$(dirname "$(realpath "$0")")")"
 
-REFERENCE_DIR="$PROJECT_DIR/data/reference"
+REFERENCE_DIR="${PROJECT_DIR}/data/reference"
 
-LOG_DIR="$PROJECT_DIR/logs"
+LOG_DIR="${PROJECT_DIR}/logs"
 
-LOG_FILE="$LOG_DIR/reference_download.log"
+LOG_FILE="${LOG_DIR}/reference_download.log"
 
 
 ###############################################################################
@@ -52,7 +52,7 @@ REFERENCE_NAME="Vibrio_cholerae_N16961"
 check_dependencies()
 {
 
-echo "Checking required software..." | tee -a "$LOG_FILE"
+echo "Checking required software..." | tee -a "${LOG_FILE}"
 
 
 for tool in datasets unzip
@@ -60,17 +60,17 @@ do
 
     if command -v "$tool" &> /dev/null
     then
-        echo "$tool found." | tee -a "$LOG_FILE"
+        echo "$tool found." | tee -a "${LOG_FILE}"
 
     else
-        echo "ERROR: $tool not found." | tee -a "$LOG_FILE"
+        echo "ERROR: $tool not found." | tee -a "${LOG_FILE}"
         exit 1
     fi
 
 done
 
 
-echo "All required software found." | tee -a "$LOG_FILE"
+echo "All required software found." | tee -a "${LOG_FILE}"
 
 }
 
@@ -82,14 +82,14 @@ echo "All required software found." | tee -a "$LOG_FILE"
 create_output_directories()
 {
 
-echo "Creating required directories..." | tee -a "$LOG_FILE"
+echo "Creating required directories..." | tee -a "${LOG_FILE}"
 
 
-mkdir -p "$REFERENCE_DIR"
-mkdir -p "$LOG_DIR"
+mkdir -p "${REFERENCE_DIR}"
+mkdir -p "${LOG_DIR}"
 
 
-echo "Directories created successfully." | tee -a "$LOG_FILE"
+echo "Directories created successfully." | tee -a "${LOG_FILE}"
 
 }
 
@@ -100,16 +100,16 @@ echo "Directories created successfully." | tee -a "$LOG_FILE"
 download_reference()
 {
 
-echo "Downloading reference genome..." | tee -a "$LOG_FILE"
+echo "Downloading reference genome..." | tee -a "${LOG_FILE}"
 
 
-REFERENCE_ZIP="$REFERENCE_DIR/reference.zip"
+REFERENCE_ZIP="${REFERENCE_DIR}/reference.zip"
 
 
-if [ -f "$REFERENCE_DIR/${REFERENCE_NAME}.fna" ]
+if [ -f "${REFERENCE_DIR}/${REFERENCE_NAME}.fna" ]
 then
 
-    echo "Reference genome already exists. Skipping download." | tee -a "$LOG_FILE"
+    echo "Reference genome already exists. Skipping download." | tee -a "${LOG_FILE}"
 
 else
 
@@ -117,7 +117,7 @@ else
         --filename "$REFERENCE_ZIP"
 
 
-    echo "Reference genome downloaded successfully." | tee -a "$LOG_FILE"
+    echo "Reference genome downloaded successfully." | tee -a "${LOG_FILE}"
 
 fi
 
@@ -131,31 +131,31 @@ fi
 extract_reference()
 {
 
-echo "Extracting reference genome..." | tee -a "$LOG_FILE"
+echo "Extracting reference genome..." | tee -a "${LOG_FILE}"
 
 
-unzip -q "$REFERENCE_DIR/reference.zip" \
--d "$REFERENCE_DIR"
+unzip -q "${REFERENCE_DIR}/reference.zip" \
+-d "${REFERENCE_DIR}"
 
 
-REFERENCE_FASTA=$(find "$REFERENCE_DIR/ncbi_dataset/data" \
+REFERENCE_FASTA=$(find "${REFERENCE_DIR}/ncbi_dataset/data" \
 -name "*.fna" | head -1)
 
 
 if [ -z "$REFERENCE_FASTA" ]
 then
 
-    echo "ERROR: Reference FASTA not found." | tee -a "$LOG_FILE"
+    echo "ERROR: Reference FASTA not found." | tee -a "${LOG_FILE}"
     exit 1
 
 fi
 
 
 cp "$REFERENCE_FASTA" \
-"$REFERENCE_DIR/${REFERENCE_NAME}.fna"
+"${REFERENCE_DIR}/${REFERENCE_NAME}.fna"
 
 
-echo "Reference FASTA prepared successfully." | tee -a "$LOG_FILE"
+echo "Reference FASTA prepared successfully." | tee -a "${LOG_FILE}"
 
 }
 

@@ -35,19 +35,19 @@ set -euo pipefail
 
 THREADS=12
 
-PROJECT_DIR=$(dirname "$(dirname "$(realpath "$0")")")
+PROJECT_DIR="$(dirname "$(dirname "$(realpath "$0")")")"
 
-ASSEMBLY_DIR="$PROJECT_DIR/results/assembly"
+ASSEMBLY_DIR="${PROJECT_DIR}/results/assembly"
 
-ASSEMBLY_QC_DIR="$PROJECT_DIR/results/assembly_qc"
+ASSEMBLY_QC_DIR="${PROJECT_DIR}/results/assembly_qc"
 
-QUAST_DIR="$ASSEMBLY_QC_DIR/quast"
+QUAST_DIR="${ASSEMBLYQC_DIR}/quast"
 
-BUSCO_DIR="$ASSEMBLY_QC_DIR/busco"
+BUSCO_DIR="${ASSEMBLYQC_DIR}/busco"
 
-LOG_DIR="$PROJECT_DIR/logs"
+LOG_DIR="${PROJECT_DIR}/logs"
 
-LOG_FILE="$LOG_DIR/assembly_qc.log"
+LOG_FILE="${LOG_DIR}/assembly_qc.log"
 
 check_dependencies()
 {
@@ -69,35 +69,35 @@ create_output_directories()
 {
 echo "creating required output directories"
 #create directory if they do not exist
-mkdir -p "$ASSEMBLY_QC_DIR"
-mkdir -p "$QUAST_DIR"
-mkdir -p "$BUSCO_DIR"
-mkdir -p "$LOG_DIR"
+mkdir -p "${ASSEMBLYQC_DIR}"
+mkdir -p "${QUAST_DIR}"
+mkdir -p "${BUSCO_DIR}"
+mkdir -p "${LOG_DIR}"
 echo "Required output directories created" | tee -a "${LOG_FILE}"
 }
 
 
 discover_samples()
 {
-    echo "Discovering assembled samples..." | tee -a "$LOG_FILE"
+    echo "Discovering assembled samples..." | tee -a "${LOG_FILE}"
 
     samples=$(
-        for sample in "$ASSEMBLY_DIR"/*
+        for sample in "${ASSEMBLY_DIR}"/*
         do
-            if [ -f "$sample/contigs.fasta" ]
+            if [ -f "${sample}/contigs.fasta" ]
             then
-                basename "$sample"
+                basename "${sample}"
             else
-                echo "ERROR: contigs.fasta for $sample not found" | tee -a "$LOG_FILE"
+                echo "ERROR: contigs.fasta for ${sample} not found" | tee -a "${LOG_FILE}"
             fi
         done
     )
 
-    echo "Samples detected:" | tee -a "$LOG_FILE"
+    echo "Samples detected:" | tee -a "${LOG_FILE}"
 
-    for sample in $samples
+    for sample in ${sample}s
     do
-        echo "$sample" | tee -a "$LOG_FILE"
+        echo "${sample}" | tee -a "${LOG_FILE}"
     done
 }
 
@@ -109,37 +109,37 @@ failed=0
 skipped=0
 
 
-echo "Starting QUAST assembly assessment..." | tee -a "$LOG_FILE"
+echo "Starting QUAST assembly assessment..." | tee -a "${LOG_FILE}"
 
 
-for sample in $samples
+for sample in ${sample}s
 do
 
-    if [ -f "$QUAST_DIR/$sample/report.html" ]
+    if [ -f "${QUAST_DIR}/${sample}/report.html" ]
     then
-        echo "$sample QUAST report already exists. Skipping..." | tee -a "$LOG_FILE"
+        echo "${sample} QUAST report already exists. Skipping..." | tee -a "${LOG_FILE}"
         ((++skipped))
         continue
     fi
 
 
-    echo "Running QUAST for $sample..." | tee -a "$LOG_FILE"
+    echo "Running QUAST for ${sample}..." | tee -a "${LOG_FILE}"
     if quast.py \
-        "$ASSEMBLY_DIR/$sample/contigs.fasta" \
-        -o "$QUAST_DIR/$sample" \
+        "${ASSEMBLY_DIR}/${sample}/contigs.fasta" \
+        -o "${QUAST_DIR}/${sample}" \
         --threads "$THREADS" 
     then
-        echo "$sample QUAST completed successfully" | tee -a "$LOG_FILE"
+        echo "${sample} QUAST completed successfully" | tee -a "${LOG_FILE}"
         ((++successful))
     else
-        echo "ERROR: $sample QUAST failed" | tee -a "$LOG_FILE"
+        echo "ERROR: ${sample} QUAST failed" | tee -a "${LOG_FILE}"
         ((++failed))
     fi
 done
-echo "QUAST summary:" | tee -a "$LOG_FILE"
-echo "Successful: $successful" | tee -a "$LOG_FILE"
-echo "Failed: $failed" | tee -a "$LOG_FILE"
-echo "Skipped: $skipped" | tee -a "$LOG_FILE"
+echo "QUAST summary:" | tee -a "${LOG_FILE}"
+echo "Successful: $successful" | tee -a "${LOG_FILE}"
+echo "Failed: $failed" | tee -a "${LOG_FILE}"
+echo "Skipped: $skipped" | tee -a "${LOG_FILE}"
 
 }
 
@@ -150,48 +150,48 @@ failed=0
 skipped=0
 
 
-echo "Starting BUSCO assembly completeness assessment..." | tee -a "$LOG_FILE"
+echo "Starting BUSCO assembly completeness assessment..." | tee -a "${LOG_FILE}"
 
-for sample in $samples
+for sample in ${sample}s
 do
 
-    if [ -f "$BUSCO_DIR/$sample/short_summary.txt" ]
+    if [ -f "${BUSCO_DIR}/${sample}/short_summary.txt" ]
     then
-        echo "$sample BUSCO result already exists. Skipping..." | tee -a "$LOG_FILE"
+        echo "${sample} BUSCO result already exists. Skipping..." | tee -a "${LOG_FILE}"
         ((++skipped))
         continue
     fi
 
 
-    echo "Running BUSCO for $sample..." | tee -a "$LOG_FILE"
+    echo "Running BUSCO for ${sample}..." | tee -a "${LOG_FILE}"
 
 
     if busco \
-        -i "$ASSEMBLY_DIR/$sample/contigs.fasta" \
-        -o "$sample" \
+        -i "${ASSEMBLY_DIR}/${sample}/contigs.fasta" \
+        -o "${sample}" \
         -l bacteria_odb12 \
         -m genome \
-        --out_path "$BUSCO_DIR" \
+        --out_path "${BUSCO_DIR}" \
         --cpu "$THREADS"
 
     then
 
-        echo "$sample BUSCO completed successfully" | tee -a "$LOG_FILE"
+        echo "${sample} BUSCO completed successfully" | tee -a "${LOG_FILE}"
         ((++successful))
 
     else
 
-        echo "ERROR: $sample BUSCO failed" | tee -a "$LOG_FILE"
+        echo "ERROR: ${sample} BUSCO failed" | tee -a "${LOG_FILE}"
         ((++failed))
 
     fi
 
 done
 
-echo "BUSCO summary:" | tee -a "$LOG_FILE"
-echo "Successful: $successful" | tee -a "$LOG_FILE"
-echo "Failed: $failed" | tee -a "$LOG_FILE"
-echo "Skipped: $skipped" | tee -a "$LOG_FILE"
+echo "BUSCO summary:" | tee -a "${LOG_FILE}"
+echo "Successful: $successful" | tee -a "${LOG_FILE}"
+echo "Failed: $failed" | tee -a "${LOG_FILE}"
+echo "Skipped: $skipped" | tee -a "${LOG_FILE}"
 
 }
 
@@ -201,6 +201,6 @@ discover_samples
 run_quast
 run_busco
 
-echo "Assembly QC completed successfully" | tee -a "$LOG_FILE"
+echo "Assembly QC completed successfully" | tee -a "${LOG_FILE}"
 
 

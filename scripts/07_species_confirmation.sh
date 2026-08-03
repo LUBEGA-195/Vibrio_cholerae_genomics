@@ -18,41 +18,46 @@ set -euo pipefail
 ###############################################################################
 REFERENCE_NAME="Vibrio_cholerae_N16961"
 
-PROJECT_DIR=$(dirname "$(dirname "$(realpath "$0")")")
+PROJECT_DIR="$(dirname "$(dirname "$(realpath "$0")")")"
 
-ASSEMBLY_DIR="$PROJECT_DIR/results/assembly"
+ASSEMBLY_DIR="${PROJECT_DIR}/results/assembly"
 
-REFERENCE_DIR="$PROJECT_DIR/data/reference"
+REFERENCE_DIR="${PROJECT_DIR}/data/reference"
 
-RESULT_DIR="$PROJECT_DIR/results/species_confirmation"
+RESULT_DIR="${PROJECT_DIR}/results/species_confirmation"
 
-LOG_DIR="$PROJECT_DIR/logs"
+LOG_DIR="${PROJECT_DIR}/logs"
 
-LOG_FILE="$LOG_DIR/species_confirmation.log"
+LOG_FILE="${LOG_DIR}/species_confirmation.log"
+
+RESULT_FILE="${RESULT_DIR}/species_confirmation.tsv"
 
 ###############################################################################
 # Check required software
 ###############################################################################
+successful=0
+failed=0
+skipped=0
 
 check_dependencies()
 {
-    echo "Checking required software..." | tee -a "$LOG_FILE"
+    echo "Checking required software..." | tee -a "${LOG_FILE}"
 
     for tool in fastANI
     do
 
         if command -v "$tool" &> /dev/null
         then
-            echo "$tool found." | tee -a "$LOG_FILE"
+            echo "$tool found." | tee -a "${LOG_FILE}"
 
         else
-            echo "ERROR: $tool not found. Please install it before continuing." | tee -a "$LOG_FILE"
+            echo "ERROR: $tool not found. Please install it before continuing." | tee -a "${LOG_FILE}"
             exit 1
         fi
 
     done
 
-    echo "All required software found." | tee -a "$LOG_FILE"
+    echo "All required software found." | tee -a "${LOG_FILE}"
 }
 
 
@@ -63,12 +68,13 @@ check_dependencies()
 create_output_directories()
 {
 
-    echo "Creating required directories..." | tee -a "$LOG_FILE"
+    echo "Creating required directories..." | tee -a "${LOG_FILE}"
 
-    mkdir -p "$RESULT_DIR"
-    mkdir -p "$LOG_DIR"
+    mkdir -p "${RESULT_DIR}"
+    mkdir -p "${LOG_DIR}"
+    echo -e "Sample_ID\tReference\tANI(%)\tFragments_Mapped\tTotal_Fragments" > "${RESULT_FILE}"
 
-    echo "Directories created successfully." | tee -a "$LOG_FILE"
+    echo "Directories created successfully." | tee -a "${LOG_FILE}"
 
 }
 
@@ -80,23 +86,23 @@ create_output_directories()
 discover_assemblies()
 {
 
-    echo "Discovering assemblies..." | tee -a "$LOG_FILE"
+    echo "Discovering assemblies..." | tee -a "${LOG_FILE}"
 
-    samples=$(ls "$ASSEMBLY_DIR")
+    samples=$(ls "${ASSEMBLY_DIR}")
 
-    for sample in $samples
+    for sample in ${samples}
     do
 
-        assembly_file="$ASSEMBLY_DIR/$sample/contigs.fasta"
+        assembly_file="${ASSEMBLY_DIR}/${sample}/contigs.fasta"
 
         if [ -f "$assembly_file" ]
         then
 
-            echo "$sample assembly found: $assembly_file" | tee -a "$LOG_FILE"
+            echo "${sample} assembly found: $assembly_file" | tee -a "${LOG_FILE}"
 
         else
 
-            echo "ERROR: Assembly not found for $sample" | tee -a "$LOG_FILE"
+            echo "ERROR: Assembly not found for ${sample}" | tee -a "${LOG_FILE}"
             exit 1
 
         fi
@@ -112,50 +118,69 @@ discover_assemblies()
 run_fastani()
 {
 
-    echo "Starting FastANI analysis..." | tee -a "$LOG_FILE"
+    echo "Starting FastANI analysis..." | tee -a "${LOG_FILE}"
 
-    samples=$(ls "$ASSEMBLY_DIR")
+    samples=$(ls "${ASSEMBLY_DIR}")
 
-    for sample in $samples
+    for sample in ${samples}
     do
 
-        assembly_file="$ASSEMBLY_DIR/$sample/contigs.fasta"
+        assembly_file="${ASSEMBLY_DIR}/${sample}/contigs.fasta"
 
-        output_file="$RESULT_DIR/${sample}_fastANI.txt"
+        output_file="${RESULT_DIR}/${sample}_fastANI.txt"
 
+	if [ -s "$output_file" ]
+	then
+    	   echo "${sample} already processed. Skipping..." | tee -a "${LOG_FILE}"
+    	   ((++skipped))
+    	   continue
+	fi
 
-        echo "Running FastANI for $sample..." | tee -a "$LOG_FILE"
+        echo "Running FastANI for ${sample}..." | tee -a "${LOG_FILE}"
 
 
         fastANI \
         --query "$assembly_file" \
-        --ref "$REFERENCE_DIR/${REFERENCE_NAME}.fna" \
+        --ref "${REFERENCE_DIR}/${REFERENCE_NAME}.fna" \
         --output "$output_file"
 
 
         if [ -s "$output_file" ]
         then
+	    read -r query reference ani fragments total < "$output_file"
 
-            echo "$sample FastANI completed successfully." | tee -a "$LOG_FILE"
+	    echo -e "${sample}\t${REFERENCE_NAME}\t${ani}\t${fragments}\t${total}" >> "${RESULT_FILE}"
+
+            echo "${sample} FastANI completed successfully." | tee -a "${LOG_FILE}"
+	    ((++successful))
 
         else
 
-            echo "ERROR: FastANI failed for $sample" | tee -a "$LOG_FILE"
-            exit 1
+            echo "ERROR: FastANI failed for ${sample}" | tee -a "${LOG_FILE}"
 
+	    ((++failed))
         fi
 
     done
 
 }
-
-
+#run main workflow
 main()
 {
 check_dependencies
 create_output_directories
 discover_assemblies
 run_fastani
+echo
+echo "=========================================="
+echo "Species confirmation completed"
+echo "=========================================="
+echo "Successful : $successful"
+echo "Failed     : $failed"
+echo "Skipped    : $skipped"
+echo "Results:"
+echo "  ${RESULT_FILE}"
+echo "=========================================="
 }
 
 main

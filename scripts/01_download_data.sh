@@ -5,46 +5,37 @@
 # Author      : Bacterial Group:Nakayenga Latifah,Lubega Brian,Karogendo Vicent.
 # Project     : Vibrio cholerae Genomics Pipeline
 # Description : Downloads paired-end FASTQ files from NCBI SRA.
-###############################################################################
+########################################################################
 
 set -eou pipefail
-#Exit immediately if any command fails (-e), treat unset variables  as errors (-u), 
-#and make pipelines fail if any command in the pipeline fails (pipefail)
-
-#Configuration of required Directories
-
-
-PROJECT_DIR=$(dirname "$(dirname "$(realpath "$0")")")
 # Exit immediately if a command fails (-e),
 # if an undefined variable is used (-u),
-# and if any command in a pipeline fails (-o pipefail).
+# and if any command fails with in a function(-o)
 
-PROJECT_DIR="$HOME/Vibrio_cholerae_genomics"
 # Path to the main project directory
-CONFIG_DIR="$PROJECT_DIR/config"
+
+PROJECT_DIR=$(dirname "$(dirname "$(realpath "$0")")")
+
 # Path to the configuration directory, which stores project settings
 # and files such as the sample sheet.
-RAW_DIR="$PROJECT_DIR/data/raw"
+CONFIG_DIR="${PROJECT_DIR}/config"
+
 # Directory used to store raw data files downloaded or generated for the project.
-LOG_DIR="$PROJECT_DIR/logs"
-# Directory where log files are stored.
-# Logs record script execution details, warnings, and errors for troubleshooting.
-SAMPLESHEET="$CONFIG_DIR/samples.csv"
+RAW_DIR="${PROJECT_DIR}/data/raw"
+
+#Path to the logs directory
+LOG_DIR="${PROJECT_DIR}/logs"
+
 # Path to the sample sheet file containing sample information
-# and accession numbers used in the analysis pipeline.
-LOG_FILE="$LOG_DIR/download.log"
-# Path to the log file used to record download progress,
-# status messages, and any errors encountered during execution.
-LOG_FILE="$LOG_DIR/download.log"
+SAMPLE_SHEET="${CONFIG_DIR}/samples.csv"
 
-#Comments  for the  different outputs including any errors that would have been encountered during downloading the read
+# Path to the log file used to record download progress
+LOG_FILE="${LOG_DIR}/download.log"
 
 ###############################################################################
-# Create required directories
-###############################################################################
-#create dirextories incase they are not there
-mkdir -p "$RAW_DIR"
-mkdir -p "$LOG_DIR"
+#create directories incase they are not there
+mkdir -p "${RAW_DIR}"
+mkdir -p "${LOG_DIR}"
 
 check_dependencies()
 {
@@ -55,126 +46,132 @@ do
 
 	if command -v "$tool" &> /dev/null
 then
-    echo "$tool found" | tee -a "$LOG_FILE"
+    echo "$tool found" | tee -a "${LOG_FILE}"
 else
-    echo "ERROR: $tool not found" | tee -a "$LOG_FILE"
+    echo "ERROR: $tool not found" | tee -a "${LOG_FILE}"
     exit 1
 fi
 done
-	echo "All required tools available" | tee -a "$LOG_FILE"
+	echo "All required tools available" | tee -a "${LOG_FILE}"
 
 }
 
 check_inputs()
 {
-	echo "Checking input files..." | tee -a "$LOG_FILE"
+	echo "Checking input files..." | tee -a "${LOG_FILE}"
 
-	if [ ! -f "$SAMPLESHEET" ]
+	if [ ! -f "${SAMPLE_SHEET}" ]
 	then
-	echo "ERROR: Sample sheet not found: $SAMPLESHEET" | tee -a "$LOG_FILE"
+	echo "ERROR: Sample sheet not found: ${SAMPLE_SHEET}" | tee -a "${LOG_FILE}"
 	exit 1
 	else
-	echo "Sample sheet found." | tee -a "$LOG_FILE"
+	echo "Sample sheet found." | tee -a "${LOG_FILE}"
 	fi
 }
 
 validate_samplesheet()
 {
-    echo "Validating sample sheet..." | tee -a "$LOG_FILE"
+    echo "Validating sample sheet..." | tee -a "${LOG_FILE}"
 
-    if [ ! -f "$SAMPLESHEET" ]
+    if [ ! -f "${SAMPLE_SHEET}" ]
     then
-        echo "ERROR: Sample sheet not found: $SAMPLESHEET" | tee -a "$LOG_FILE"
+        echo "ERROR: Sample sheet not found: ${SAMPLE_SHEET}" | tee -a "${LOG_FILE}"
         exit 1
     fi
 
 
-    if ! head -n 1 "$SAMPLESHEET" | grep -q "accession"
+    if ! head -n 1 "${SAMPLE_SHEET}" | grep -q "accession"
     then
-        echo "ERROR: Sample sheet missing accession column" | tee -a "$LOG_FILE"
+        echo "ERROR: Sample sheet missing accession column" | tee -a "${LOG_FILE}"
         exit 1
     fi
 
 
-    missing_accessions=$(awk -F',' 'NR>1 && $2=="" {print $1}' "$SAMPLESHEET")
+    missing_accessions=$(awk -F',' 'NR>1 && $2=="" {print $1}' "${SAMPLE_SHEET}")
 
 
     if [ -n "$missing_accessions" ]
     then
-        echo "ERROR: Missing accession values for:" | tee -a "$LOG_FILE"
-        echo "$missing_accessions" | tee -a "$LOG_FILE"
+        echo "ERROR: Missing accession values for:" | tee -a "${LOG_FILE}"
+        echo "$missing_accessions" | tee -a "${LOG_FILE}"
         exit 1
     fi
 
 
-    echo "Sample sheet validation successful." | tee -a "$LOG_FILE"
+    echo "Sample sheet validation successful." | tee -a "${LOG_FILE}"
 }
 
 download_sra()
 {
-    echo "Starting SRA downloads..." | tee -a "$LOG_FILE"
+    echo "Starting SRA downloads..." | tee -a "${LOG_FILE}"
 
     successful=0
     failed=0
 
-    for accession in $(awk -F',' 'NR>1 {print $2}' "$SAMPLESHEET")
+    for accession in $(awk -F',' 'NR>1 {print $2}' "${SAMPLE_SHEET}")
     do
-        echo "Processing $accession..." | tee -a "$LOG_FILE"
+        echo "Processing $accession..." | tee -a "${LOG_FILE}"
 
         # Check if FASTQ already exists
-        if [ -s "$RAW_DIR/${accession}_1.fastq" ] && [ -s "$RAW_DIR/${accession}_2.fastq" ]
+        if [ -s "${RAW_DIR}/${accession}_1.fastq" ] && [ -s "${RAW_DIR}/${accession}_2.fastq" ]
         then
-   echo "$accession FASTQ already exists. Skipping." | tee -a "$LOG_FILE"
+   echo "$accession FASTQ already exists. Skipping." | tee -a "${LOG_FILE}"
         successful=$((successful + 1))
         continue
         fi
 
 
         # Download SRA file
-        if prefetch "$accession" --output-directory "$RAW_DIR"
+        if prefetch "${accession}" --output-directory "${RAW_DIR}"
         then
-            echo "$accession download completed." | tee -a "$LOG_FILE"
+            echo "${accession} download completed." | tee -a "${LOG_FILE}"
         else
-            echo "ERROR: $accession download failed." | tee -a "$LOG_FILE"
+            echo "ERROR: ${accession} download failed." | tee -a "${LOG_FILE}"
             failed=$((failed + 1))
             continue
         fi
 
 	#Safety check for complete accession.sra download
-    if [ -f "$RAW_DIR/$accession/$accession.sra" ]
+    if [ -f "${RAW_DIR}/${accession}/${accession}.sra" ]
     then
-    	echo "$accession SRA download complete" | tee -a "$LOG_FILE"
+    	echo "${accession} SRA download complete" | tee -a "${LOG_FILE}"
     else
-    	echo "ERROR: $accession SRA download incomplete" | tee -a "$LOG_FILE"
-	rm -rf "$RAW_DIR/$accession"
+    	echo "ERROR: ${accession} SRA download incomplete" | tee -a "${LOG_FILE}"
+	rm -rf "${RAW_DIR}/${accession}"
     	failed=$((failed + 1))
     	continue
     fi
 
 
         # Convert SRA to FASTQ
-        if fasterq-dump "$RAW_DIR/$accession" \
+        if fasterq-dump "${RAW_DIR}/${accession}" \
             --split-files \
-            --outdir "$RAW_DIR"
+            --outdir "${RAW_DIR}"
         then
-            echo "$accession converted to FASTQ successfully." | tee -a "$LOG_FILE"
+            echo "$accession converted to FASTQ successfully." | tee -a "${LOG_FILE}"
 
-    	    echo "Compressing FASTQ files..." | tee -a "$LOG_FILE"
+    	    echo "Compressing FASTQ files..." | tee -a "${LOG_FILE}"
 
-	    gzip -f "$RAW_DIR/${accession}_1.fastq"
-	    gzip -f "$RAW_DIR/${accession}_2.fastq"
-            echo "Compression completed." | tee -a "$LOG_FILE"
+	    gzip -f "${RAW_DIR}/${accession}_1.fastq"
+	    gzip -f "${RAW_DIR}/${accession}_2.fastq"
+            echo "Compression completed." | tee -a "${LOG_FILE}"
+	#Compress fastq reads with gzip
+	    gzip "${RAW_DIR}/${accession}_1.fastq"
+	    gzip "${RAW_DIR}/${accession}_2.fastq"
+            echo "Compression completed." | tee -a "${LOG_FILE}"
+
         else
-            echo "ERROR: $accession FASTQ conversion failed." | tee -a "$LOG_FILE"
+            echo "ERROR: ${accession} FASTQ conversion failed." | tee -a "${LOG_FILE}"
             failed=$((failed + 1))
         fi
 
+	#check if raw directory has valid fastqfiles with non zero bytes
 	if [ -s "$RAW_DIR/${accession}_1.fastq.gz" ] && [ -s "$RAW_DIR/${accession}_2.fastq.gz" ]
 	then
-    	echo "$accession FASTQ validation passed." | tee -a "$LOG_FILE"
+    	echo "$accession FASTQ validation passed." | tee -a "${LOG_FILE}"
     	successful=$((successful + 1))
 	else
-    	   echo "ERROR: $accession FASTQ validation failed." | tee -a "$LOG_FILE"
+    	   echo "ERROR: $accession FASTQ validation failed." | tee -a "${LOG_FILE}"
     	   failed=$((failed + 1))
 	fi
 
@@ -183,12 +180,12 @@ download_sra()
 
 
     # FINAL SUMMARY GOES HERE
-    echo "===============================" | tee -a "$LOG_FILE"
-    echo "SRA download summary" | tee -a "$LOG_FILE"
-    echo "Successful samples: $successful" | tee -a "$LOG_FILE"
-    echo "Failed samples: $failed" | tee -a "$LOG_FILE"
-    echo "FASTQ location: $RAW_DIR" | tee -a "$LOG_FILE"
-    echo "===============================" | tee -a "$LOG_FILE"
+    echo "===============================" | tee -a "${LOG_FILE}"
+    echo "SRA download summary" | tee -a "${LOG_FILE}"
+    echo "Successful samples: $successful" | tee -a "${LOG_FILE}"
+    echo "Failed samples: $failed" | tee -a "${LOG_FILE}"
+    echo "FASTQ location: ${RAW_DIR}" | tee -a "${LOG_FILE}"
+    echo "===============================" | tee -a "${LOG_FILE}"
 
 }
 
