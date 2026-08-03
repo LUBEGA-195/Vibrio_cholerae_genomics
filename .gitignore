@@ -7,3 +7,4 @@ logs/
 .nextflow.log*
 scripts/busco_downloads/
 Vibrio_cholerae_genomics/
+runinfo.csv
