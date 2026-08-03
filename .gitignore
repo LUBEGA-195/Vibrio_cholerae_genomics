@@ -6,5 +6,10 @@ logs/
 .nextflow/
 .nextflow.log*
 scripts/busco_downloads/
+<<<<<<< Updated upstream
 Vibrio_cholerae_genomics/
 runinfo.csv
+=======
+replace_variables.sed
+scripts/01_download_data.sh:Zone.Identifier
+>>>>>>> Stashed changes
